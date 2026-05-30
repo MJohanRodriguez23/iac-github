@@ -3,12 +3,40 @@ Description: EC2 creada desde GitHub Actions
 
 Resources:
 
+  # 1. Creamos el Grupo de Seguridad para HTTP
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Permitir trafico HTTP en el puerto 80
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0 # Permite el acceso desde cualquier parte del mundo
+
+  # 2. Modificamos la EC2 para incluir el grupo y la UserData
   MyEC2:
     Type: AWS::EC2::Instance
     Properties:
       AvailabilityZone: us-east-1a
-      ImageId: ami-0cca150d127c2216f
+      ImageId: ami-0cca150d127c2216f # Asegúrate de que esta AMI sea de Amazon Linux o Ubuntu
       InstanceType: t3.micro
+      
+      # Vinculamos el grupo de seguridad a la instancia
+      SecurityGroups:
+        - !Ref MySecurityGroup
+      
+      # Añadimos la UserData (Script de automatización al iniciar)
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          # Actualizar el sistema e instalar Apache (servidor web)
+          yum update -y
+          yum install -y httpd
+          systemctl start httpd
+          systemctl enable httpd
+          # Crear una página web de bienvenida muy sencilla
+          echo "<h1>Hola desde mi EC2 creada con GitHub Actions!</h1>" > /var/html/index.html
 
       Tags:
         - Key: Name
@@ -18,3 +46,8 @@ Outputs:
 
   InstanceId:
     Value: !Ref MyEC2
+
+  # Output opcional pero muy útil para que veas la IP pública en la consola
+  PublicIP:
+    Description: IP publica de la instancia para probar en el navegador
+    Value: !GetAtt MyEC2.PublicIp
