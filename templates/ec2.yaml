@@ -35,9 +35,7 @@ Resources:
           yum install -y httpd
           systemctl start httpd
           systemctl enable httpd
-          # Crear una página web de bienvenida muy sencilla
-          echo "<h1>Hola desde mi EC2 creada con GitHub Actions!</h1>" > /var/html/index.html
-
+          echo "<h1>Hola desde mi EC2 creada con GitHub Actions!</h1>" > /var/www/html/index.html
       Tags:
         - Key: Name
           Value: EC2-GitHubActions
